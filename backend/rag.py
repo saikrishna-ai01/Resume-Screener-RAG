@@ -14,35 +14,29 @@ class RAGPipeline:
     def ask(self, question: str, top_k: int = 5):
 
         try:
+            # Generate query embedding
             query_embedding = self.embedding_service.embed_query(question)
+
+            # Retrieve relevant chunks
             results = self.vector_store.search(
                 query_embedding=query_embedding,
                 k=top_k
             )
 
-            if results is None:
+            if not results or not results.get("documents"):
                 return {
                     "question": question,
                     "context": "",
-                    "answer": "No results returned from ChromaDB."
+                    "answer": "No relevant information found."
                 }
 
-            documents = results.get("documents")
-
-            if documents is None or len(documents) == 0:
-                return {
-                    "question": question,
-                    "context": "",
-                    "answer": "No relevant information found in the database."
-                }
-
-            documents = documents[0]
+            documents = results["documents"][0]
 
             if not documents:
                 return {
                     "question": question,
                     "context": "",
-                    "answer": "No relevant information found in the database."
+                    "answer": "No relevant information found."
                 }
 
             context = "\n\n".join(documents)
@@ -53,11 +47,11 @@ class RAGPipeline:
             )
 
             try:
-               answer = self.gemini.generate(prompt)
-            except Exception as e:
+                answer = self.gemini.generate(prompt)
+            except Exception:
                 answer = (
-                    "⚠️ AI Answer is temporarily unavailable because the Gemini API quota has been exceeded. "
-                    "Please try again later or configure another Gemini API key."
+                    "⚠️ AI Answer is temporarily unavailable because the Gemini API "
+                    "is unavailable or the quota has been exceeded."
                 )
 
             return {

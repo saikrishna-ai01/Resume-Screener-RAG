@@ -20,12 +20,54 @@ app = FastAPI()
 uploaded_resume = ""
 uploaded_jd = ""
 
-parser = ResumeParser()
-jd_parser = JDParser()
-chunker = ResumeChunker()
-embedding_service = EmbeddingService()
-vector_store = VectorStore()
-rag = RAGPipeline()
+parser = None
+jd_parser = None
+chunker = None
+embedding_service = None
+vector_store = None
+rag = None
+
+
+def get_parser():
+    global parser
+    if parser is None:
+        parser = ResumeParser()
+    return parser
+
+
+def get_jd_parser():
+    global jd_parser
+    if jd_parser is None:
+        jd_parser = JDParser()
+    return jd_parser
+
+
+def get_chunker():
+    global chunker
+    if chunker is None:
+        chunker = ResumeChunker()
+    return chunker
+
+
+def get_embedding_service():
+    global embedding_service
+    if embedding_service is None:
+        embedding_service = EmbeddingService()
+    return embedding_service
+
+
+def get_vector_store():
+    global vector_store
+    if vector_store is None:
+        vector_store = VectorStore()
+    return vector_store
+
+
+def get_rag():
+    global rag
+    if rag is None:
+        rag = RAGPipeline()
+    return rag
 
 
 class QuestionRequest(BaseModel):
@@ -43,15 +85,15 @@ async def upload_resume(file: UploadFile = File(...)):
 
     try:
         # Parse Resume
-        result = parser.parse(temp_path)
+        result = get_parser().parse(temp_path)
         global uploaded_resume
         uploaded_resume = result["text"]
 
         # Clear previous resume embeddings
-        vector_store.clear()
+        get_vector_store().clear()
 
         # Create Chunks
-        chunks = chunker.create_chunks(
+        chunks = get_chunker().create_chunks(
             filename=file.filename or "uploaded_resume", 
             document_type="resume",
             text=result["text"]
@@ -59,10 +101,10 @@ async def upload_resume(file: UploadFile = File(...)):
 
         # Generate Embeddings
         texts = [chunk["text"] for chunk in chunks]
-        embeddings = embedding_service.embed_documents(texts)
+        embeddings = get_embedding_service().embed_documents(texts)
 
         # Store in ChromaDB
-        vector_store.add_documents(
+        get_vector_store().add_documents(
             chunks=chunks,
             embeddings=embeddings
         )
@@ -71,7 +113,7 @@ async def upload_resume(file: UploadFile = File(...)):
             "status": "success",
             "filename": file.filename,
             "chunks_created": len(chunks),
-            "total_documents": vector_store.count(),
+            "total_documents": get_vector_store().count(),
             "data": result
         }
 
@@ -90,7 +132,7 @@ async def upload_job_description(file: UploadFile = File(...)):
     temp_path = TempFileHandler.save_temp_file(file)
 
     try:
-        result = jd_parser.parse(temp_path)
+        result = get_jd_parser().parse(temp_path)
 
         uploaded_jd = result["text"]
 
@@ -107,7 +149,7 @@ async def upload_job_description(file: UploadFile = File(...)):
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
-    return rag.ask(request.question)
+    return get_rag().ask(request.question)
 
 @app.post("/ats-score")
 def ats_score():
