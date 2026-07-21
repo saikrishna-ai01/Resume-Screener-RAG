@@ -2,7 +2,10 @@ import os
 import streamlit as st
 import requests
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
+API_URL = os.getenv(
+    "API_URL",
+    "https://resume-screener-rag.onrender.com"
+)
 
 st.set_page_config(
     page_title="AI Resume Screener",
