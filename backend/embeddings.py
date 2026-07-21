@@ -1,14 +1,11 @@
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-import os
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
 
 class EmbeddingService:
-    """
-    Singleton Gemini Embedding Service.
-    """
 
     _model = None
 
@@ -21,8 +18,8 @@ class EmbeddingService:
             )
         return cls._model
 
-    def embed_query(self, text: str):
+    def embed_query(self, text):
         return self.get_model().embed_query(text)
 
-    def embed_documents(self, documents: list[str]):
+    def embed_documents(self, documents):
         return self.get_model().embed_documents(documents)
