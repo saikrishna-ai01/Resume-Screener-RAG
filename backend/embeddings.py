@@ -1,10 +1,13 @@
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class EmbeddingService:
     """
-    Singleton Embedding Service.
-    Loads the embedding model only once.
+    Singleton Gemini Embedding Service.
     """
 
     _model = None
@@ -12,13 +15,14 @@ class EmbeddingService:
     @classmethod
     def get_model(cls):
         if cls._model is None:
-            cls._model = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2"
+            cls._model = GoogleGenerativeAIEmbeddings(
+                model="models/text-embedding-004",
+                google_api_key=os.getenv("GOOGLE_API_KEY")
             )
         return cls._model
 
-    def embed_query(self, text: str) -> list[float]:
+    def embed_query(self, text: str):
         return self.get_model().embed_query(text)
 
-    def embed_documents(self, documents: list[str]) -> list[list[float]]:
+    def embed_documents(self, documents: list[str]):
         return self.get_model().embed_documents(documents)
