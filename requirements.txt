@@ -17,15 +17,13 @@ langchain
 langchain-core
 langchain-community
 langchain-text-splitters
-langchain-huggingface
+
 langchain-google-genai
 langchain-chroma
 
 google-generativeai
 
-sentence-transformers
-transformers
-torch
+
 
 numpy
 scikit-learn
